@@ -32,7 +32,8 @@
                       <tr>
                         <th scope="row">{{$post->id}}</th>
                         <td>
-                          <img width="80" src="{{asset('storage/'.$post->image)}}" alt="">
+                          {{-- <img width="80" src="{{asset('storage/'.$post->image)}}" alt=""> --}}
+                             <img width="80" src="{{ Storage::disk('s3')->url($post->image) }}" alt="">
                         </td>
                         <td>{{$post->title}}</td>
                         <td>{{$post->description}}</td>

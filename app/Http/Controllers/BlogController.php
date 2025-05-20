@@ -6,6 +6,8 @@ use App\Models\Admin;
 use File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
+
 
 class BlogController extends Controller
 {
@@ -38,22 +40,46 @@ class BlogController extends Controller
      */
     public function store(Request $request)
     {
+        // $request->validate([
+        //     'image' =>['required','max:2028','image'],
+        //     'title'=>['required','max:255'],
+        //     'category_id'=>['required'],
+        //     'description' => ['required']
+        // ]);
+        // $filename=time().'_'.$request->image->getClientOriginalName();
+        // $filePath= $request->image->storeAs('uploads',$filename);
+        
+        // $post = new Admin();
+        // $post->title =$request->title;
+        // $post->description=$request->description;
+        // $post->category_id =$request->category_id;
+        // $post->image =$filePath;
+        // $post->deleted_at =date('d-m-y');
+        // $post->save();
+        // return redirect()->route('admin.index');
         $request->validate([
-            'image' =>['required','max:2028','image'],
-            'title'=>['required','max:255'],
-            'category_id'=>['required'],
+            'image' => ['required', 'max:2028', 'image'],
+            'title' => ['required', 'max:255'],
+            'category_id' => ['required'],
             'description' => ['required']
         ]);
-        $filename=time().'_'.$request->image->getClientOriginalName();
-        $filePath= $request->image->storeAs('uploads',$filename);
-        
+
+        $filename = time() . '_' . $request->image->getClientOriginalName();
+
+        // Upload to S3 under 'uploads' directory
+        $filePath = $request->image->storeAs('', $filename, 's3');
+
+        // Optional: Make file public
+        Storage::disk('s3')->setVisibility($filePath, 'public');
+
         $post = new Admin();
-        $post->title =$request->title;
-        $post->description=$request->description;
-        $post->category_id =$request->category_id;
-        $post->image =$filePath;
-        $post->deleted_at =date('d-m-y');
+        $post->title = $request->title;
+        $post->description = $request->description;
+        $post->category_id = $request->category_id;
+        $post->image = $filePath; // OR you can store Storage::disk('s3')->url($filePath) if you want full URL
+        $post->deleted_at = date('d-m-y');
         $post->save();
+
         return redirect()->route('admin.index');
     }
 
